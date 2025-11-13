@@ -77,8 +77,15 @@ async def store_file(file: UploadFile = File(...)):
     """
     try:
         # Security check: prevent directory traversal in filename
-        filename = os.path.basename(file.filename)
-        if not filename or filename in (".", ".."):
+        original_name = (file.filename or "").strip()
+        filename = os.path.basename(original_name)
+        # Reject attempts with directory traversal or invalid names
+        if (
+            not original_name
+            or original_name in (".", "..")
+            or original_name != filename
+            or any(sep in filename for sep in ("/", "\\"))
+        ):
             raise HTTPException(status_code=400, detail="Invalid filename")
         
         file_path = STORAGE_DIR / filename
@@ -102,6 +109,8 @@ async def store_file(file: UploadFile = File(...)):
             "size": len(content),
             "content_type": file.content_type
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to store file: {str(e)}")
 
