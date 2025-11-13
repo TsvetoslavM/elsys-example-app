@@ -5,6 +5,12 @@ from typing import Generator
 import pytest
 from fastapi.testclient import TestClient
 
+import sys
+from pathlib import Path
+
+# Add repo root to sys.path so Python can find main.py
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import main
 
 
